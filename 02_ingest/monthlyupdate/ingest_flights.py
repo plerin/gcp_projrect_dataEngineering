@@ -102,7 +102,7 @@ def verify_ingest(csvfile):
          raise DataUnavailable(msg)
 
 
-def remove_quotes_comma(csvfile, year, month):
+def remove_quotes_comma(csvfile, year, month): # 따옴표와 줄 끝의 쉼표를 제거하는 코드
  '''
      returns output_csv_file or raises DataUnavailable exception
  '''
@@ -112,7 +112,7 @@ def remove_quotes_comma(csvfile, year, month):
    with open(csvfile, 'r') as infp:
      with open(outfile, 'w') as outfp:
         for line in infp:
-           outline = line.rstrip().rstrip(',')
+           outline = line.rstrip().rstrip(',') # line의 우측 공백 제거(rstrip()) + 우측 ',' 제거(rstrit(','))
            outline = remove_quote(outline)
            outfp.write(outline)
            outfp.write('\n')
@@ -122,7 +122,7 @@ def remove_quotes_comma(csvfile, year, month):
    logging.debug("... removing {}".format(csvfile))
    os.remove(csvfile)
 
-def upload(csvfile, bucketname, blobname):
+def upload(csvfile, bucketname, blobname): # csv파일을 storage에 업로드 
    client = storage.Client()
    bucket = client.get_bucket(bucketname)
    blob = Blob(blobname, bucket)
@@ -131,7 +131,7 @@ def upload(csvfile, bucketname, blobname):
    logging.info('Uploaded {} ...'.format(gcslocation))
    return gcslocation
 
-def ingest(year, month, bucket):
+def ingest(year, month, bucket): # 여기서 download부터 update까지 모두 실행
    '''
    ingest flights data from BTS website to Google Cloud Storage
    return cloud-storage-blob-name on success.
@@ -170,7 +170,7 @@ def compute_next_month(year, month):
    return '{}'.format(dt.year), '{:02d}'.format(dt.month)
   
 if __name__ == '__main__':
-   import argparse
+   import argparse # ingest_flights.py --help 입력하면 나오는 설명
    parser = argparse.ArgumentParser(description='ingest flights data from BTS website to Google Cloud Storage')
    parser.add_argument('--bucket', help='GCS bucket to upload data to', required=True)
    parser.add_argument('--year', help='Example: 2015.  If not provided, defaults to getting next month')
