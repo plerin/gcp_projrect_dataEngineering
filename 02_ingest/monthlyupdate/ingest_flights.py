@@ -149,7 +149,7 @@ def ingest(year, month, bucket): # 여기서 download부터 update까지 모두 
       logging.debug('Cleaning up by removing {}'.format(tempdir))
       shutil.rmtree(tempdir)
 
-def next_month(bucketname):
+def next_month(bucketname): # 실행 시 parameter로 year,month를 안 넣었을 경우 bucket에서 최근 일자 찾는 함수
    '''
      Finds which months are on GCS, and returns next year,month to download
    '''
@@ -157,10 +157,10 @@ def next_month(bucketname):
    bucket = client.get_bucket(bucketname)
    blobs  = list(bucket.list_blobs(prefix='flights/raw/'))
    files = [blob.name for blob in blobs if 'csv' in blob.name] # csv files only
-   lastfile = os.path.basename(files[-1])
+   lastfile = os.path.basename(files[-1]) # 파일 중 가장 뒤에 있는(최근)
    logging.debug('The latest file on GCS is {}'.format(lastfile))
-   year = lastfile[:4]
-   month = lastfile[4:6]
+   year = lastfile[:4] # 파일 이름의 앞에 4자리는 year 
+   month = lastfile[4:6] # 파일 이름 4~5 자리는 month
    return compute_next_month(year, month)
 
 def compute_next_month(year, month):
@@ -179,7 +179,7 @@ if __name__ == '__main__':
    try:
       logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
       args = parser.parse_args()
-      if args.year is None or args.month is None:
+      if args.year is None or args.month is None: 
          year, month = next_month(args.bucket)
       else:
          year = args.year
