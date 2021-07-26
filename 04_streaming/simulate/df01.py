@@ -22,13 +22,13 @@ if __name__ == '__main__':
 
       airports = (pipeline
          | beam.io.ReadFromText('airports.csv.gz') # 이름 파일 읽어
-         | beam.Map(lambda line: next(csv.reader([line])))
-         | beam.Map(lambda fields: (fields[0], (fields[21], fields[26])))
+         | beam.Map(lambda line: next(csv.reader([line]))) # 한 줄씩 읽겠다.
+         | beam.Map(lambda fields: (fields[0], (fields[21], fields[26]))) # 원하는 필드 지정 ( 공항 공유번호, (위도, 경도))
       )
 
       (airports 
-         | beam.Map(lambda airport_data: '{},{}'.format(airport_data[0], ','.join(airport_data[1])) )
-         | beam.io.WriteToText('extracted_airports')  # 이름 파일 로드
+         | beam.Map(lambda airport_data: '{},{}'.format(airport_data[0], ','.join(airport_data[1])) ) # 튜플 해제하고 x,x,x 형태로 변환
+         | beam.io.WriteToText('extracted_airports')  # 이름 파일 출력
       )
 
       pipeline.run()
