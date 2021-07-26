@@ -43,12 +43,12 @@ def as_utc(date, hhmm, tzone):
       print('{} {} {}'.format(date, hhmm, tzone))
       raise e
 
-def add_24h_if_before(arrtime, deptime):
+def add_24h_if_before(arrtime, deptime):  # arrtime을 기준으로 1일 뒤(24시간) date 리턴
    import datetime
    if len(arrtime) > 0 and len(deptime) > 0 and arrtime < deptime:
-      adt = datetime.datetime.strptime(arrtime, '%Y-%m-%d %H:%M:%S')
-      adt += datetime.timedelta(hours=24)
-      return adt.strftime('%Y-%m-%d %H:%M:%S')
+      adt = datetime.datetime.strptime(arrtime, '%Y-%m-%d %H:%M:%S') # arrtime을 원하는 포맷으로 변경('%Y-%m-%d %H:%M:%S')
+      adt += datetime.timedelta(hours=24) # 변경된 date(adt)에 1일 더하기(hours=24)
+      return adt.strftime('%Y-%m-%d %H:%M:%S')  # adt에 1일 더한 값을 원하는 형태로 리턴('%Y-%m-%d %H:%M:%S')
    else:
       return arrtime
 
@@ -66,7 +66,7 @@ def tz_correct(line, airport_timezones):
       for f in [18, 20, 21]: #wheelson, crsarrtime, arrtime
          fields[f], arrtz = as_utc(fields[0], fields[f], arr_timezone)
       
-      for f in [17, 18, 20, 21]:
+      for f in [17, 18, 20, 21]: # wheelsoff, wheelson, crsarrtime, arrtime
          fields[f] = add_24h_if_before(fields[f], fields[14])
 
       fields.extend(airport_timezones[dep_airport_id])
