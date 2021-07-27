@@ -53,9 +53,9 @@ def add_24h_if_before(arrtime, deptime):
    else:
       return arrtime
 
-def tz_correct(line, airport_timezones):
+def tz_correct(line, airport_timezones):  # 여기서 사용되는 airport_timezones은 airports pipline에서 만든 데이터 
    fields = line.split(',')
-   if fields[0] != 'FL_DATE' and len(fields) == 27:
+   if fields[0] != 'FL_DATE' and len(fields) == 27: # header가 아니고 field가 27개로 이루어있으면(올바른 데이터라면)
       # convert all times to UTC
       dep_airport_id = fields[6]
       arr_airport_id = fields[10]
@@ -77,7 +77,7 @@ def tz_correct(line, airport_timezones):
 
       yield fields
 
-def get_next_event(fields):
+def get_next_event(fields):   # flights 데이터 
     if len(fields[14]) > 0:
        event = list(fields) # copy
        event.extend(['departed', fields[14]])
