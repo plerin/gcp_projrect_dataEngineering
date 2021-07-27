@@ -27,7 +27,7 @@ def addtimezone(lat, lon):
    except ValueError:
       return (lat, lon, 'TIMEZONE') # header
 
-def as_utc(date, hhmm, tzone):
+def as_utc(date, hhmm, tzone): # PARAM : 2015-01-01, 0512, America/Anchorage  형태로 들어와
    try:
       if len(hhmm) > 0 and tzone is not None:
          import datetime, pytz
@@ -36,7 +36,7 @@ def as_utc(date, hhmm, tzone):
          # can't just parse hhmm because the data contains 2400 and the like ...
          loc_dt += datetime.timedelta(hours=int(hhmm[:2]), minutes=int(hhmm[2:]))
          utc_dt = loc_dt.astimezone(pytz.utc)
-         return utc_dt.strftime('%Y-%m-%d %H:%M:%S'), loc_dt.utcoffset().total_seconds()
+         return utc_dt.strftime('%Y-%m-%d %H:%M:%S'), loc_dt.utcoffset().total_seconds() # tocoffset() : 표준 시에서 로컬(각 나라)시에 맞는 offset값을 리턴
       else:
          return '',0 # empty string corresponds to canceled flights
    except ValueError as e:
@@ -52,27 +52,27 @@ def add_24h_if_before(arrtime, deptime):  # arrtime을 기준으로 1일 뒤(24�
    else:
       return arrtime
 
-def tz_correct(line, airport_timezones):
+def tz_correct(line, airport_timezones): # airport_timezones는 df03에서 return 받은 데이터 '1000101,58.10944444,-152.90666667,America/Anchorage'
    fields = line.split(',')
    if fields[0] != 'FL_DATE' and len(fields) == 27:
       # convert all times to UTC
-      dep_airport_id = fields[6]
-      arr_airport_id = fields[10]
-      dep_timezone = airport_timezones[dep_airport_id][2] 
-      arr_timezone = airport_timezones[arr_airport_id][2]
+      dep_airport_id = fields[6]    # 출발 공항 ID
+      arr_airport_id = fields[10]   # 도착 공항 ID
+      dep_timezone = airport_timezones[dep_airport_id][2]   # 출발 공항 ID의 TIMEZONE => EX)  America/Anchorage 가 담긴다.
+      arr_timezone = airport_timezones[arr_airport_id][2]   # 도착 공항 ID - TIMEZONE
       
       for f in [13, 14, 17]: #crsdeptime, deptime, wheelsoff
-         fields[f], deptz = as_utc(fields[0], fields[f], dep_timezone)
+         fields[f], deptz = as_utc(fields[0], fields[f], dep_timezone) # [f]의 값을 utc 표준시로 변경하여 저장, 
       for f in [18, 20, 21]: #wheelson, crsarrtime, arrtime
          fields[f], arrtz = as_utc(fields[0], fields[f], arr_timezone)
       
-      for f in [17, 18, 20, 21]: # wheelsoff, wheelson, crsarrtime, arrtime
-         fields[f] = add_24h_if_before(fields[f], fields[14])
+      for f in [17, 18, 20, 21]: # wheelsoff, wheelson, crsarrtime, arrtime 
+         fields[f] = add_24h_if_before(fields[f], fields[14])  # 도착관련된 시간정보가 출발시간보다 빠른경우 1일 추가(전처리)
 
-      fields.extend(airport_timezones[dep_airport_id])
-      fields[-1] = str(deptz)
-      fields.extend(airport_timezones[arr_airport_id])
-      fields[-1] = str(arrtz)
+      fields.extend(airport_timezones[dep_airport_id])   # 출발 공항 정보(좌표/timezone)을 추가
+      fields[-1] = str(deptz) # 출발 공항 정보의 timezone을 offset시간으로 변경
+      fields.extend(airport_timezones[arr_airport_id])   # 도착 공항 정보(좌표/timezone)을 추가
+      fields[-1] = str(arrtz) # 도착 공항 정보의 timezone을 offset시간으로 변경 ex) +09:00(8900000, 정확한 값은 아니고 예시임) / -09:00(-89000000)
 
       yield ','.join(fields)
 
