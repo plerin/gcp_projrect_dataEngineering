@@ -19,7 +19,7 @@ import csv
 
 DATETIME_FORMAT='%Y-%m-%dT%H:%M:%S'
 
-def addtimezone(lat, lon):
+def addtimezone(lat, lon): # using airport's coordinate, get timezone
    try:
       import timezonefinder
       tf = timezonefinder.TimezoneFinder()
@@ -28,10 +28,10 @@ def addtimezone(lat, lon):
    except ValueError:
       return (lat, lon, 'TIMEZONE') # header
 
-def as_utc(date, hhmm, tzone):
+def as_utc(date, hhmm, tzone):   # convert to utc, param : date(yyyy-dd), hhmm(0410), tzone(america/newyork)
    try:
       if len(hhmm) > 0 and tzone is not None:
-         import datetime, pytz
+         import datetime, pytz # module pytz : it's the library provide timezone in python 
          loc_tz = pytz.timezone(tzone)
          loc_dt = loc_tz.localize(datetime.datetime.strptime(date,'%Y-%m-%d'), is_dst=False)
          # can't just parse hhmm because the data contains 2400 and the like ...
@@ -44,18 +44,18 @@ def as_utc(date, hhmm, tzone):
       print ('{} {} {}'.format(date, hhmm, tzone))
       raise e
 
-def add_24h_if_before(arrtime, deptime):
+def add_24h_if_before(arrtime, deptime):  # preprocess, if arrtime earlier than deptime, add one day(24hours) with arrtime 
    import datetime
    if len(arrtime) > 0 and len(deptime) > 0 and (arrtime < deptime):
       adt = datetime.datetime.strptime(arrtime, DATETIME_FORMAT)
       adt += datetime.timedelta(hours=24)
-      return adt.strftime(DATETIME_FORMAT)
+      return adt.strftime(DATETIME_FORMAT)   # DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
    else:
       return arrtime
 
-def tz_correct(line, airport_timezones_dict):
+def tz_correct(line, airport_timezones_dict):   # param : line : read the '201501 flight info' by line, airport... : read and preprcess data using airport info data
    def airport_timezone(airport_id):
-       if airport_id in airport_timezones_dict:
+       if airport_id in airport_timezones_dict: # if doesn't have field 'airport_id' then using the most populate center in US
           return airport_timezones_dict[airport_id]
        else:
           return ('37.52', '-92.17', u'America/Chicago') # population center of US
@@ -76,9 +76,9 @@ def tz_correct(line, airport_timezones_dict):
          fields[f] = add_24h_if_before(fields[f], fields[14])
 
       fields.extend(airport_timezone(dep_airport_id))
-      fields[-1] = str(deptz)
+      fields[-1] = str(deptz) # update departure timezone to offset(seconds) 
       fields.extend(airport_timezone(arr_airport_id))
-      fields[-1] = str(arrtz)
+      fields[-1] = str(arrtz) # update arrive timezone to offset(seconds)
 
       yield fields
 
@@ -114,7 +114,7 @@ def run(project, bucket, dataset, region):
       '--project={0}'.format(project),
       '--job_name=ch04timecorr',
       '--save_main_session',
-      '--staging_location=gs://{0}/flights/staging/'.format(bucket),
+      '--staging_location=gs://{0}/flights/staging/'.format(bucket), # {0} : first parameter
       '--temp_location=gs://{0}/flights/temp/'.format(bucket),
       '--setup_file=./setup.py',
       '--max_num_workers=8',
@@ -127,7 +127,7 @@ def run(project, bucket, dataset, region):
    flights_output = 'gs://{}/flights/tzcorr/all_flights'.format(bucket)
    events_output = '{}:{}.simevents'.format(project, dataset)
 
-   pipeline = beam.Pipeline(argv=argv)
+   pipeline = beam.Pipeline(argv=argv) # PIPELINE insert argv
    
    airports = (pipeline 
       | 'airports:read' >> beam.io.ReadFromText(airports_filename)
