@@ -66,7 +66,7 @@ def tz_correct(line, airport_timezones): # airport_timezones는 df03에서 retur
       for f in [18, 20, 21]: #wheelson, crsarrtime, arrtime
          fields[f], arrtz = as_utc(fields[0], fields[f], arr_timezone)
       
-      for f in [17, 18, 20, 21]: # wheelsoff, wheelson, crsarrtime, arrtime 
+      for f in [17, 18, 20, 21]: # wheelsoff, wheelson, crsarrtime, arrtime _ when arrtime smaller than deptime because line 64-67 then calibrate data
          fields[f] = add_24h_if_before(fields[f], fields[14])  # 도착관련된 시간정보가 출발시간보다 빠른경우 1일 추가(전처리)
 
       fields.extend(airport_timezones[dep_airport_id])   # 출발 공항 정보(좌표/timezone)을 추가
