@@ -82,17 +82,17 @@ def tz_correct(line, airport_timezones_dict):   # param : line : read the '20150
 
       yield fields
 
-def get_next_event(fields):
+def get_next_event(fields):   # call the 'FlatMap' so one line -> three iterators(departed,wheelsoff,arrvied)
     if len(fields[14]) > 0:
        event = list(fields) # copy
        event.extend(['departed', fields[14]])
-       for f in [16,17,18,19,21,22,25]:
+       for f in [16,17,18,19,21,22,25]:   # when departe the airplane, didn't know about arrtime
           event[f] = ''  # not knowable at departure time
        yield event
     if len(fields[17]) > 0:
        event = list(fields) # copy
        event.extend(['wheelsoff', fields[17]])
-       for f in [18,19,21,22,25]:
+       for f in [18,19,21,22,25]:   # when wheelsoff of airplane , didn't know about after wheelsoff
           event[f] = ''  # not knowable at wheelsoff time
        yield event
     if len(fields[21]) > 0:
@@ -100,13 +100,13 @@ def get_next_event(fields):
        event.extend(['arrived', fields[21]])
        yield event
 
-def create_row(fields):
+def create_row(fields): # 
     header = 'FL_DATE,UNIQUE_CARRIER,AIRLINE_ID,CARRIER,FL_NUM,ORIGIN_AIRPORT_ID,ORIGIN_AIRPORT_SEQ_ID,ORIGIN_CITY_MARKET_ID,ORIGIN,DEST_AIRPORT_ID,DEST_AIRPORT_SEQ_ID,DEST_CITY_MARKET_ID,DEST,CRS_DEP_TIME,DEP_TIME,DEP_DELAY,TAXI_OUT,WHEELS_OFF,WHEELS_ON,TAXI_IN,CRS_ARR_TIME,ARR_TIME,ARR_DELAY,CANCELLED,CANCELLATION_CODE,DIVERTED,DISTANCE,DEP_AIRPORT_LAT,DEP_AIRPORT_LON,DEP_AIRPORT_TZOFFSET,ARR_AIRPORT_LAT,ARR_AIRPORT_LON,ARR_AIRPORT_TZOFFSET,EVENT,NOTIFY_TIME'.split(',')
 
     featdict = {}
-    for name, value in zip(header, fields):
+    for name, value in zip(header, fields):  # two iteraters conbine by step(field)
         featdict[name] = value
-    featdict['EVENT_DATA'] = ','.join(fields)
+    featdict['EVENT_DATA'] = ','.join(fields)   # add event_data likes join fields of ',' in the last
     return featdict
  
 def run(project, bucket, dataset, region):
