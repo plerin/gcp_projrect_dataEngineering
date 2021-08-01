@@ -33,25 +33,25 @@ def publish(publisher, topics, allevents, notify_time):
       # the client automatically batches
       logging.info('Publishing {} {} till {}'.format(len(events), key, timestamp))
       for event_data in events:
-          publisher.publish(topic, event_data.encode(), EventTimeStamp=timestamp)
+          publisher.publish(topic, event_data.encode(), EventTimeStamp=timestamp)   # publish with topic contents event_data
 
 def notify(publisher, topics, rows, simStartTime, programStart, speedFactor):
    # sleep computation
    def compute_sleep_secs(notify_time):
-        time_elapsed = (datetime.datetime.utcnow() - programStart).total_seconds()
-        sim_time_elapsed = (notify_time - simStartTime).total_seconds() / speedFactor
+        time_elapsed = (datetime.datetime.utcnow() - programStart).total_seconds()  # 경과_ present time - program start time result convert to seconds
+        sim_time_elapsed = (notify_time - simStartTime).total_seconds() / speedFactor  # 
         to_sleep_secs = sim_time_elapsed - time_elapsed
         return to_sleep_secs
 
-   tonotify = {}
-   for key in topics:
+   tonotify = {}  # key : event(departed/wheelsoff/arrived) / value : event_data(data sperated comma with flights)
+   for key in topics:   # make a dictonary using topics(['wheelsoff', 'arrived', 'departed'])
      tonotify[key] = list()
 
    for row in rows:
-       event, notify_time, event_data = row
+       event, notify_time, event_data = row  # event, notfy_time, event_data all fields is select fields in row
 
        # how much time should we sleep?
-       if compute_sleep_secs(notify_time) > 1:
+       if compute_sleep_secs(notify_time) > 1:  # publish by one day, and sleep then publish repeatly
           # notify the accumulated tonotify
           publish(publisher, topics, tonotify, notify_time)
           for key in topics:
@@ -69,17 +69,17 @@ def notify(publisher, topics, rows, simStartTime, programStart, speedFactor):
 
 
 if __name__ == '__main__':
-   parser = argparse.ArgumentParser(description='Send simulated flight events to Cloud Pub/Sub')
+   parser = argparse.ArgumentParser(description='Send simulated flight events to Cloud Pub/Sub')   #. simulated flight events result to send Cloud PUB/SUB 
    parser.add_argument('--startTime', help='Example: 2015-05-01 00:00:00 UTC', required=True)
    parser.add_argument('--endTime', help='Example: 2015-05-03 00:00:00 UTC', required=True)
    parser.add_argument('--project', help='your project id, to create pubsub topic', required=True)
-   parser.add_argument('--speedFactor', help='Example: 60 implies 1 hour of data sent to Cloud Pub/Sub in 1 minute', required=True, type=float)
+   parser.add_argument('--speedFactor', help='Example: 60 implies 1 hour of data sent to Cloud Pub/Sub in 1 minute', required=True, type=float) # 1 hour data to pub/sub in 1min
    parser.add_argument('--jitter', help='type of jitter to add: None, uniform, exp  are the three options', default='None')
 
    # set up BigQuery bqclient
    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
    args = parser.parse_args()
-   bqclient = bq.Client(args.project)
+   bqclient = bq.Client(args.project)  # get bqclient using project param
    dataset =  bqclient.get_dataset( bqclient.dataset('flights') )  # throws exception on failure
 
    # jitter?
@@ -105,25 +105,25 @@ WHERE
 ORDER BY
   NOTIFY_TIME ASC
 """
-   rows = bqclient.query(querystr.format(jitter,
+   rows = bqclient.query(querystr.format(jitter,   
                                          args.startTime,
-                                         args.endTime))
+                                         args.endTime))  # execute the query and ruturns rows 
 
    # create one Pub/Sub notification topic for each type of event
-   publisher = pubsub_v1.PublisherClient()
+   publisher = pubsub_v1.PublisherClient()   # create an instance of pubsub's publisher
    topics = {}
    for event_type in ['wheelsoff', 'arrived', 'departed']:
-       topics[event_type] = publisher.topic_path(args.project, event_type)
+       topics[event_type] = publisher.topic_path(args.project, event_type) # topic_path params : [PROJECT] [TOPIC]
        try:
          # Getting the new topics from PubSub
-          for topic in publisher.list_topics(request={"project": project_path}):
+          for topic in publisher.list_topics(request={"project": project_path}): # get the lists project name 
                 print(topic)
        except:
          #Creating New topics
            publisher.create_topic(request={"name": topics[event_type]})
 
    # notify about each row in the dataset
-   programStartTime = datetime.datetime.utcnow()
+   programStartTime = datetime.datetime.utcnow()   # utc : standard time
    simStartTime = datetime.datetime.strptime(args.startTime, TIME_FORMAT).replace(tzinfo=pytz.UTC)
    print('Simulation start time is {}'.format(simStartTime))
    notify(publisher, topics, rows, simStartTime, programStartTime, args.speedFactor)
