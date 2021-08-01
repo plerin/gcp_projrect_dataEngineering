@@ -117,11 +117,11 @@ ORDER BY
        try:
          # Getting the new topics from PubSub 
 #           for topic in publisher.list_topics(request={"project": project_path}): # get the lists project name
-          for topic in publisher.list_topics(request={"project": args.project}): # get the lists project name
+          for topic in publisher.list_topics(args.project): # get the lists project name
                 print(topic)
        except:
          #Creating New topics
-           publisher.create_topic(request={"name": topics[event_type]})
+           publisher.create_topic(topics[event_type])
 
    # notify about each row in the dataset
    programStartTime = datetime.datetime.utcnow()   # utc : standard time
