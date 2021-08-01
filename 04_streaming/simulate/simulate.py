@@ -115,8 +115,9 @@ ORDER BY
    for event_type in ['wheelsoff', 'arrived', 'departed']:
        topics[event_type] = publisher.topic_path(args.project, event_type) # topic_path params : [PROJECT] [TOPIC]
        try:
-         # Getting the new topics from PubSub
-          for topic in publisher.list_topics(request={"project": project_path}): # get the lists project name 
+         # Getting the new topics from PubSub 
+#           for topic in publisher.list_topics(request={"project": project_path}): # get the lists project name
+          for topic in publisher.list_topics(request={"project": args.project}): # get the lists project name
                 print(topic)
        except:
          #Creating New topics
